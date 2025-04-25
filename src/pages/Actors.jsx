@@ -7,7 +7,7 @@ function Actors() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    
+    // For testing purposes, return mock data
     if (process.env.NODE_ENV === 'test') {
       setActors([
         {
