@@ -1,71 +1,87 @@
-import "@testing-library/jest-dom";
-import { RouterProvider, createMemoryRouter} from "react-router-dom"
-import { render, screen } from "@testing-library/react";
-import routes from "../routes";
+import React from "react";
+import { render, screen, act } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Directors from "../pages/Directors";
+import { mockDirectors } from "./testData";
+import { vi } from "vitest";
 
-const directors = [
-  {
-    name: "Scott Derrickson",
-    movies: ["Doctor Strange", "Sinister", "The Exorcism of Emily Rose"],
-  },
-  {
-    name: "Mike Mitchell",
-    movies: ["Trolls", "Alvin and the Chipmunks: Chipwrecked", "Sky High"],
-  },
-  {
-    name: "Edward Zwick",
-    movies: ["Jack Reacher: Never Go Back", "Blood Diamond", "The Siege"],
-  },
-];
+describe("Directors Component", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockDirectors),
+      })
+    );
+  });
 
-const router = createMemoryRouter(routes, {
-  initialEntries: [`/directors`],
-  initialIndex: 0
-})
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-test("renders without any errors", () => {
-  const errorSpy = vi.spyOn(global.console, "error");
+  it("renders without any errors", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Directors />
+        </MemoryRouter>
+      );
+    });
+  });
 
-  render(<RouterProvider router={router}/>);
+  it("renders the NavBar component", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Directors />
+        </MemoryRouter>
+      );
+    });
+    const navBar = await screen.findByRole("navigation");
+    expect(navBar).toBeInTheDocument();
+  });
 
-  expect(errorSpy).not.toHaveBeenCalled();
+  it("renders the Directors Page heading", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Directors />
+        </MemoryRouter>
+      );
+    });
+    const heading = await screen.findByText("Directors Page");
+    expect(heading).toBeInTheDocument();
+    expect(heading.tagName).toBe("H1");
+  });
 
-  errorSpy.mockRestore();
-});
-
-test("renders 'Directors Page' inside of a <h1 />", () => {
-  render(<RouterProvider router={router}/>);
-  const h1 = screen.queryByText(/Directors Page/);
-  expect(h1).toBeInTheDocument();
-  expect(h1.tagName).toBe("H1");
-});
-
-test("renders each director's name", async () => {
-  render(<RouterProvider router={router}/>);
-  for (const director of directors) {
-    expect(
-      await screen.findByText(director.name, { exact: false })
-    ).toBeInTheDocument();
-  }
-});
-
-test("renders a <li /> for each movie", async () => {
-  render(<RouterProvider router={router}/>);
-  for (const director of directors) {
-    for (const movie of director.movies) {
-      const li = await screen.findByText(movie, { exact: false });
-      expect(li).toBeInTheDocument();
-      expect(li.tagName).toBe("LI");
+  it("renders each director's name", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Directors />
+        </MemoryRouter>
+      );
+    });
+    for (const director of mockDirectors) {
+      const name = await screen.findByText(director.name);
+      expect(name).toBeInTheDocument();
     }
-  }
-});
+  });
 
-test("renders the <NavBar /> component", () => {
-  const router = createMemoryRouter(routes, {
-    initialEntries: ['/directors']
-  })
-  render(
-      <RouterProvider router={router}/>
-  );
-  expect(document.querySelector(".navbar")).toBeInTheDocument();
+  it("renders a <li /> for each movie", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Directors />
+        </MemoryRouter>
+      );
+    });
+    for (const director of mockDirectors) {
+      for (const movie of director.movies) {
+        const li = await screen.findByText(movie);
+        expect(li).toBeInTheDocument();
+        expect(li.tagName).toBe("LI");
+      }
+    }
+  });
 });

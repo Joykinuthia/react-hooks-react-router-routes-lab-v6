@@ -1,6 +1,5 @@
-
-import React from 'react';
-import NavBar from '../components/NavBar';
+import React from "react";
+import NavBar from "../components/NavBar";
 
 function ErrorPage() {
   return (
@@ -11,4 +10,4 @@ function ErrorPage() {
   );
 }
 
-export default ErrorPage; 
+export default ErrorPage;

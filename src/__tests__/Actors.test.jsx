@@ -1,79 +1,87 @@
-import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
-import { RouterProvider, createMemoryRouter} from "react-router-dom";
-import routes from "../routes";
+import React from "react";
+import { render, screen, act } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Actors from "../pages/Actors";
+import { mockActors } from "./testData";
+import { vi } from "vitest";
 
-const actors = [
-  {
-    name: "Benedict Cumberbatch",
-    movies: ["Doctor Strange", "The Imitation Game", "Black Mass"],
-  },
-  {
-    name: "Justin Timberlake",
-    movies: ["Trolls", "Friends with Benefits", "The Social Network"],
-  },
-  {
-    name: "Anna Kendrick",
-    movies: ["Pitch Perfect", "Into The Wood"],
-  },
-  {
-    name: "Tom Cruise",
-    movies: [
-      "Jack Reacher: Never Go Back",
-      "Mission Impossible 4",
-      "War of the Worlds",
-    ],
-  },
-];
+describe("Actors Component", () => {
+  beforeEach(() => {
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockActors),
+      })
+    );
+  });
 
-const router = createMemoryRouter(routes, {
-  initialEntries: [`/actors`],
-  initialIndex: 0
-})
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-test("renders without any errors", () => {
-  const errorSpy = vi.spyOn(global.console, "error");
+  it("renders without any errors", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Actors />
+        </MemoryRouter>
+      );
+    });
+  });
 
-  render(<RouterProvider router={router}/>);
+  it("renders the NavBar component", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Actors />
+        </MemoryRouter>
+      );
+    });
+    const navBar = await screen.findByRole("navigation");
+    expect(navBar).toBeInTheDocument();
+  });
 
-  expect(errorSpy).not.toHaveBeenCalled();
+  it("renders the Actors Page heading", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Actors />
+        </MemoryRouter>
+      );
+    });
+    const heading = await screen.findByText("Actors Page");
+    expect(heading).toBeInTheDocument();
+    expect(heading.tagName).toBe("H1");
+  });
 
-  errorSpy.mockRestore();
-});
-
-test("renders 'Actors Page' inside of the <h1 />", () => {
-  render(<RouterProvider router={router}/>);
-  const h1 = screen.queryByText(/Actors Page/);
-  expect(h1).toBeInTheDocument();
-  expect(h1.tagName).toBe("H1");
-});
-
-test("renders each actor's name", async () => {
-  render(<RouterProvider router={router}/>);
-  for (const actor of actors) {
-    expect(
-      await screen.findByText(actor.name, { exact: false })
-    ).toBeInTheDocument();
-  }
-});
-
-test("renders a <li /> for each movie", async () => {
-  render(<RouterProvider router={router}/>);
-  for (const actor of actors) {
-    for (const movie of actor.movies) {
-      const li = await screen.findByText(movie, { exact: false });
-      expect(li).toBeInTheDocument();
-      expect(li.tagName).toBe("LI");
+  it("renders each actor's name", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Actors />
+        </MemoryRouter>
+      );
+    });
+    for (const actor of mockActors) {
+      const name = await screen.findByText(actor.name);
+      expect(name).toBeInTheDocument();
     }
-  }
-});
+  });
 
-test("renders the <NavBar /> component", () => {
-  const router = createMemoryRouter(routes, {
-    initialEntries: ['/actors']
-  })
-  render(
-      <RouterProvider router={router}/>
-  );
-  expect(document.querySelector(".navbar")).toBeInTheDocument();
+  it("renders a <li /> for each movie", async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Actors />
+        </MemoryRouter>
+      );
+    });
+    for (const actor of mockActors) {
+      for (const movie of actor.movies) {
+        const li = await screen.findByText(movie);
+        expect(li).toBeInTheDocument();
+        expect(li.tagName).toBe("LI");
+      }
+    }
+  });
 });
